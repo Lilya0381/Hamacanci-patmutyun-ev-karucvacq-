@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="hy">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ճանապարհորդություն համացանցի աշխարհում</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:20px;background:linear-gradient(135deg,#eef2ff,#ecfeff);font-family:Arial,sans-serif;color:#172554}
+#app{max-width:650px;margin:0 auto}.hero{background:linear-gradient(135deg,#172554,#4f46e5 58%,#0891b2);color:white;border-radius:22px;padding:25px 18px;text-align:center;box-shadow:0 12px 30px #3730a333}
+.hero .globe{font-size:48px}.hero h1{font-size:24px;margin:8px 0}.hero p{margin:8px 0 0;font-size:14px}
+.panel{background:white;border:1px solid #dbeafe;border-radius:18px;padding:19px;margin-top:16px;box-shadow:0 8px 24px #1e3a8a0c}
+button,input{font:inherit}input{width:100%;padding:14px;border:1px solid #cbd5e1;border-radius:12px;margin:8px 0 14px}
+.btn{border:0;border-radius:13px;padding:14px 16px;font-weight:700;background:#4f46e5;color:white;width:100%;cursor:pointer}
+.option{width:100%;text-align:left;padding:14px;border:1px solid #cbd5e1;border-radius:13px;background:#f8fafc;margin:5px 0;cursor:pointer;line-height:1.45}
+.option:disabled{opacity:1;cursor:default}.correct{border:2px solid #16a34a!important;background:#dcfce7!important}.wrong{border:2px solid #dc2626!important;background:#fee2e2!important}
+.progress{height:9px;background:#e2e8f0;border-radius:20px;overflow:hidden}.bar{height:100%;background:linear-gradient(90deg,#6366f1,#06b6d4);width:0}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.stat{background:#f1f5f9;border-radius:13px;padding:12px;text-align:center;flex:1}
+.muted{color:#64748b;font-size:13px}.hidden{display:none!important}#feedback{padding:13px;background:#f1f5f9;border-radius:12px;margin-top:10px;font-size:14px;line-height:1.5}
+#sound{background:white;color:#334155;border:1px solid #cbd5e1;border-radius:20px;padding:8px 12px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="app">
+ <header class="hero"><div class="globe">🌐</div><h1>ՀԱՄԱՑԱՆՑԻ ԱՇԽԱՐՀԸ</h1><p>Ստուգի՛ր գիտելիքներդ և դարձի՛ր գիտելիքի չեմպիոն</p><p>30 ՀԱՐՑ • 1 ԽԱՂ • 1 ՀԱՂԹՈՂ</p></header>
+ <section id="start" class="panel">
+  <h2>👋 Բարի գալուստ։</h2><p>Մուտքագրի՛ր անունդ և սկսի՛ր հետաքրքիր ճանապարհորդությունը համացանցի աշխարհում։</p>
+  <label for="name"><b>Խաղացողի անունը</b></label><input id="name" maxlength="24" placeholder="Գրիր քո անունը..." autocomplete="off">
+  <button id="begin" class="btn">ՍԿՍԵԼ ԽԱՂԸ 🚀</button><p class="muted" style="text-align:center">30 հարց • առավելագույնը 30 միավոր</p>
+ </section>
+ <section id="game" class="hidden">
+  <div class="row" style="margin:16px 2px"><b>👤 <span id="player"></span></b><button id="sound">🔊 Ձայնը՝ միացված</button></div>
+  <div class="panel">
+   <div class="row"><b id="count">Հարց 1 / 30</b><b>⭐ <span id="score">0</span> միավոր</b></div>
+   <div class="progress" style="margin:12px 0 6px"><div id="bar" class="bar"></div></div><div class="row muted"><span>Առաջընթաց</span><span id="percent">0%</span></div>
+  </div>
+  <div class="panel">
+   <div id="topic" style="font-size:12px;font-weight:bold;color:#6366f1;margin-bottom:12px">ՀԱՄԱՑԱՆՑ</div>
+   <h2 id="question" style="font-size:20px;line-height:1.4"></h2>
+   <div id="options"></div><div id="feedback" class="hidden"></div>
+   <button id="next" class="btn hidden" style="margin-top:14px">ՀԱՋՈՐԴ ՀԱՐՑԸ ➜</button>
+  </div>
+  <div class="row" style="margin-top:12px">
+   <div class="stat">🎯<br><b id="mini-score">0</b><div class="muted">Միավոր</div></div>
+   <div class="stat">📝<br><b>30</b><div class="muted">Հարց</div></div>
+   <div class="stat">⚡<br><b id="mini-left">30</b><div class="muted">Մնացել է</div></div>
+  </div>
+ </section>
+ <section id="result" class="panel hidden" style="text-align:center">
+  <div id="medal" style="font-size:65px">🏆</div><h2>Խաղն ավարտվեց։</h2><p>Հրաշալի աշխատանք, <b id="final-name"></b>։</p>
+  <div class="stat" style="padding:22px"><div class="muted">Քո արդյունքը</div><div id="final-score" style="font-size:48px;font-weight:900;margin:8px">0/30</div><b id="message"></b></div>
+  <div class="row" style="margin:12px 0"><div class="stat">✅ <b id="right">0</b><div class="muted">Ճիշտ</div></div><div class="stat">❌ <b id="wrong">0</b><div class="muted">Սխալ</div></div></div>
+  <button id="restart" class="btn">🔄 ԿՐԿԻՆ ԽԱՂԱԼ</button>
+ </section>
+</div>
+<script>
+const questions=[
+['Համացանցի պատմություն','Ե՞րբ է սկսվել համացանցի պատմությունը՝ ըստ դասի։',['1957 թվականին','1969 թվականին','1985 թվականին','1989 թվականին'],0,'Դասում նշվում է, որ համացանցի պատմությունը սկսվել է 1957 թվականից։'],
+['Համացանցի պատմություն','Ո՞ր երկրում էին 1950-ականներին ստեղծվում առաջին համակարգչային ցանցերը։',['Ֆրանսիայում','ԱՄՆ-ում','Ճապոնիայում','Իտալիայում'],1,'Առաջին ցանցերը ստեղծվում էին ԱՄՆ-ի պաշտպանության, հետազոտական և կրթական հաստատություններում։'],
+['Համացանցի պատմություն','Ո՞ր արբանյակի արձակումից հետո հիմնադրվեց ARPA-ն։',['Explorer 1','Apollo 11','Sputnik 1','Voyager 1'],2,'1958 թվականին Խորհրդային Միության կողմից արձակվեց Sputnik 1-ը։'],
+['Համացանցի պատմություն','Ի՞նչ է նշանակում ARPA հապավումը։',['Առաջադեմ հետազոտական նախագծերի գործակալություն','Ազգային համակարգչային կենտրոն','Համաշխարհային ցանցային կազմակերպություն','Համակարգչային ծրագրերի ասոցիացիա'],0,'ARPA-ն առաջադեմ հետազոտական նախագծերի գործակալությունն է։'],
+['Համացանցի պատմություն','Ո՞ր ցանցն է համարվում համացանցի նախատիպը։',['NSFNET','ARPANET','WWW','FTP'],1,'ARPANET-ը համարվում է համացանցի նախատիպը։'],
+['Համացանցի պատմություն','Ո՞ր թվականին է համարվում, որ տեղի է ունեցել համացանցի ստեղծման օրը։',['1957 թ.','1958 թ.','1969 թ. հոկտեմբերի 29','1989 թ.'],2,'1969 թվականի հոկտեմբերի 29-ին տեղի ունեցավ առաջին կապը ARPANET ցանցում։'],
+['Համացանցի պատմություն','Ո՞ր տեխնոլոգիան է հիմք դարձել համացանցի ստեղծման համար։',['Փաթեթների փոխանակում','Տպագրություն','Ձայնագրություն','Լուսանկարչություն'],0,'Փաթեթների փոխանակման (Packet switching) տեխնոլոգիան հիմք դարձավ ցանցի ստեղծման համար։'],
+['Համացանցի պատմություն','Ի՞նչ էր օգտագործվում ARPANET ցանցում մինչև 1983 թվականը։',['HTTP','FTP','NCP','HTML'],2,'ARPANET ցանցում օգտագործվում էր Network Control Protocol-ը՝ NCP-ն։'],
+['Համացանցի պատմություն','Ո՞ր ցանցին փոխանցվեց ARPANET-ի գործառույթը 1985 թվականին։',['NSFNET','WWW','TCP','IPv6'],0,'1985 թվականին այն փոխանցվեց Ազգային գիտական հիմնադրամի ցանցին՝ NSFNET-ին։'],
+['Համացանցի պատմություն','Ո՞ր թվականին Թիմ Բերներս-Լին հիմնադրեց Համաշխարհային սարդոստայնը։',['1969','1983','1985','1989'],3,'1989 թվականին Թիմ Բերներս-Լին հիմնադրեց WWW-ն։'],
+['Համաշխարհային սարդոստայն','Ի՞նչ է WWW-ն։',['Համակարգչի տեսակ','Համաշխարհային սարդոստայն','Հասցեավորման համակարգ','Միայն էլեկտրոնային փոստ'],1,'WWW-ն համաշխարհային սարդոստայնն է՝ հիպերտեքստային հղումների վրա հիմնված համակարգ։'],
+['Համաշխարհային սարդոստայն','Ինչի՞ վրա է հիմնված WWW-ն։',['Հիպերտեքստային հղումների','Միայն հեռախոսազանգերի','Տպագիր գրքերի','Միայն նկարների'],0,'Համաշխարհային սարդոստայնը հիմնված է հիպերտեքստային հղումների վրա։'],
+['Համաշխարհային սարդոստայն','Ի՞նչ է թույլ տալիս WWW-ն օգտվողներին։',['Միայն խաղեր խաղալ','Մուտք գործել և դիտել տարբեր տեսակի տեղեկություններ','Միայն նամակ ուղարկել','Միայն համակարգիչ անջատել'],1,'Այն հնարավորություն է տալիս մուտք գործել և դիտել տարբեր տեսակի տեղեկություններ։'],
+['Համացանցի նշանակություն','Ինչո՞ւ է համացանցը դարձել ժամանակակից կյանքի կարևոր մաս։',['Որովհետև փոխարինում է բոլոր մարդկանց','Որովհետև հեշտացնում է հաղորդակցությունն ու տեղեկությունների փոխանակումը','Որովհետև աշխատում է առանց սարքերի','Որովհետև միայն խաղերի համար է'],1,'Համացանցը հեշտացնում է հաղորդակցությունն ու տեղեկությունների փոխանակումը։'],
+['Համացանցի նշանակություն','Ո՞րն է սոցիալական ցանցերի հիմնական հնարավորություններից մեկը։',['Մարդկանց միջև կապի ապահովումը','Համակարգչի վերանորոգումը','Էլեկտրաէներգիայի արտադրությունը','Տպագրությունը'],0,'Սոցիալական ցանցերը հեշտացնում են մարդկանց միջև հաղորդակցությունը։'],
+['Համացանցի նշանակություն','Ո՞ր սարքերն են կարողանում միանալ ժամանակակից թվային ցանցերին։',['Միայն համակարգիչները','Միայն հեռուստացույցները','Համակարգիչները, սմարթֆոններն ու պլանշետները','Միայն տպիչները'],2,'Ժամանակակից ցանցերին միանում են տարբեր թվային սարքեր։'],
+['Ցանցային արձանագրություններ','Ի՞նչ է ցանցային արձանագրությունը։',['Ցանցում տվյալների փոխանակման կանոնների համակարգ','Համակարգչի արտաքին տեսքը','Միայն գաղտնաբառ','Էլեկտրոնային խաղ'],0,'Արձանագրությունը ցանցում տվյալների փոխանակման կանոնների համակարգ է։'],
+['Ցանցային արձանագրություններ','Ո՞ր արձանագրություններն են նշված դասում։',['TCP/IP, FTP և HTTP','HTML, JPG և PNG','USB, HDMI և VGA','PDF, DOC և TXT'],0,'Դասում ներկայացված են TCP/IP, FTP և HTTP արձանագրությունները։'],
+['Ցանցային արձանագրություններ','Ի՞նչ է ապահովում TCP/IP-ն։',['Տվյալների փոխանցումն ու ցանցային հաղորդակցությունը','Նկարների խմբագրումը','Ձայնի բարձրացումը','Տեքստի տպագրությունը'],0,'TCP/IP-ն ապահովում է տվյալների փոխանցումն ու ցանցային հաղորդակցությունը։'],
+['Ցանցային արձանագրություններ','Ինչի՞ համար է օգտագործվում FTP-ն։',['Ֆայլերի փոխանցման','Վեբ էջերի ձևավորման','Հասցեների գրանցման','Ձայնային զանգերի'],0,'FTP-ն նախատեսված է ֆայլերի փոխանցման համար։'],
+['Ցանցային արձանագրություններ','Ինչի՞ հետ է կապված HTTP արձանագրությունը։',['Վեբ էջերի փոխանցման','Համակարգչի սնուցման','Ֆայլերի սեղմման','Սարքերի լիցքավորման'],0,'HTTP-ն կիրառվում է վեբ էջերի փոխանցման համար։'],
+['IP հասցեավորում','Ի՞նչ է IP հասցեն։',['Ցանցում սարքի հասցեն','Համակարգչի գույնը','Օգտվողի անունը','Էլեկտրոնային փոստը'],0,'IP հասցեն ցանցում սարքի հասցեն է։'],
+['IP հասցեավորում','Քանի՞ բիթից է բաղկացած IPv4 հասցեն։',['16','32','64','128'],1,'IPv4 հասցեն բաղկացած է 32 բիթից։'],
+['IP հասցեավորում','Քանի՞ խմբի է բաժանվում IPv4 հասցեն։',['2','3','4','8'],2,'IPv4 հասցեն ներկայացվում է չորս խմբով։'],
+['IP հասցեավորում','Ի՞նչ սահմաններում կարող է լինել IPv4 հասցեի յուրաքանչյուր թվային խումբը։',['0-ից 100','0-ից 255','1-ից 512','0-ից 999'],1,'Յուրաքանչյուր խումբ կարող է լինել 0-ից 255։'],
+['IP հասցեավորում','Ո՞րն է IPv4 հասցեի ճիշտ օրինակ։',['128.19.30.39','128:19:30:39','128-19-30-39','128,19,30,39'],0,'Դասում բերված օրինակն է՝ 128.19.30.39։'],
+['IP հասցեավորում','Քանի՞ բիթից է բաղկացած IPv6 հասցեն։',['32','64','96','128'],3,'IPv6 հասցեն բաղկացած է 128 բիթից։'],
+['IP հասցեավորում','Ինչո՞վ են իրարից բաժանվում IPv6 հասցեի խմբերը։',['Կետերով','Ստորակետերով','Երկկետերով','Գծիկներով'],2,'IPv6 հասցեի խմբերը բաժանվում են երկկետերով։'],
+['IP հասցեավորում','IPv4 հասցեների ո՞ր դասերն են ներկայացված դասում։',['A, B, C, D, E','A, B, C','1, 2, 3, 4','X, Y, Z'],0,'Դասում ներկայացված են A, B, C, D և E խմբերը։'],
+['Ամփոփում','Ո՞ր պնդումն է ճիշտ։',['Ինտերնետը և WWW-ն նույն հասկացություններն են','WWW-ն համացանցի միջոցով հասանելի տեղեկատվական համակարգ է','IPv4-ն ունի 128 բիթ','FTP-ն վեբ էջերի ձևավորման լեզու է'],1,'WWW-ն համացանցի միջոցով հասանելի տեղեկատվական համակարգ է, իսկ ինտերնետը ցանցերի համաշխարհային համակարգն է։']
+];
+const $=id=>document.getElementById(id);let index=0,score=0,answered=false,sound=true,ctx=null,name='';
+function beep(ok){if(!sound)return;try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();let o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=ok?660:220;g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.12,ctx.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.22);o.start();o.stop(ctx.currentTime+.23)}catch(e){}}
+function start(){name=$('name').value.trim();if(!name){$('name').focus();$('name').placeholder='Նախ գրի՛ր անունդ 😊';return}index=0;score=0;$('start').classList.add('hidden');$('result').classList.add('hidden');$('game').classList.remove('hidden');$('player').textContent=name;render()}
+function render(){answered=false;let q=questions[index];$('count').textContent=`Հարց ${index+1} / 30`;$('score').textContent=score;$('mini-score').textContent=score;$('mini-left').textContent=30-index;$('bar').style.width=(index/30*100)+'%';$('percent').textContent=Math.round(index/30*100)+'%';$('topic').textContent=q[0].toUpperCase();$('question').textContent=q[1];$('feedback').classList.add('hidden');$('next').classList.add('hidden');$('options').innerHTML='';q[2].forEach((opt,i)=>{let b=document.createElement('button');b.className='option';b.textContent=String.fromCharCode(65+i)+'. '+opt;b.onclick=()=>choose(i);$('options').appendChild(b)})}
+function choose(c){if(answered)return;answered=true;let q=questions[index],ok=c===q[3];if(ok)score++;beep(ok);[...$('options').children].forEach((b,i)=>{b.disabled=true;if(i===q[3])b.classList.add('correct');else if(i===c)b.classList.add('wrong')});$('feedback').classList.remove('hidden');$('feedback').textContent=(ok?'✅ Ճիշտ պատասխան։ ':'❌ Սխալ պատասխան։ ')+q[4];$('score').textContent=score;$('mini-score').textContent=score;$('next').classList.remove('hidden');$('next').textContent=index===29?'ՏԵՍՆԵԼ ԱՐԴՅՈՒՆՔԸ 🏆':'ՀԱՋՈՐԴ ՀԱՐՑԸ ➜'}
+function next(){if(!answered)return;index++;if(index>=30)finish();else render()}
+function finish(){$('game').classList.add('hidden');$('result').classList.remove('hidden');$('final-name').textContent=name;$('final-score').textContent=score+'/30';$('right').textContent=score;$('wrong').textContent=30-score;let msg=score>=27?'Անհավանական արդյունք։ Դու համացանցի գիտակ ես։':score>=22?'Գերազանց արդյունք։ Շատ լավ գիտես թեման։':score>=16?'Լավ աշխատանք։ Շարունակի՛ր սովորել։':score>=10?'Վատ չէ։ Մի փոքր կրկնիր դասը։':'Կրկնի՛ր դասը և փորձի՛ր ևս մեկ անգամ։';$('message').textContent=msg;$('medal').textContent=score>=27?'🏆':score>=22?'🥇':score>=16?'🥈':'🌟';beep(score>=16)}
+$('begin').onclick=start;$('name').onkeydown=e=>{if(e.key==='Enter')start()};$('next').onclick=next;$('sound').onclick=()=>{sound=!sound;$('sound').textContent=sound?'🔊 Ձայնը՝ միացված':'🔇 Ձայնը՝ անջատված';if(sound)beep(true)};$('restart').onclick=()=>{$('result').classList.add('hidden');$('start').classList.remove('hidden');$('name').value=name};
+</script>
+</body></html>
